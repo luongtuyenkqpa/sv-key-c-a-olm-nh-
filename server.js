@@ -2,8 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const app = express();
-// Đã sửa dòng này để tự nhận Port trên server online
-const port = process.env.PORT || 3000;
+const port = 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -11,12 +10,12 @@ app.use(express.urlencoded({ extended: true }));
 
 const DB_FILE = './database.json';
 const ADMIN_PASSWORD = 'admin'; 
-const GEMINI_KEY = 'AIzaSyCEwd9Tr-j14tLxgt8WaiCQdgEnc-WiTHE';
+const GEMINI_KEY = 'AIzaSyCEwd9Tr-j14tLxgt8WaiCQdgEnc-WiTHE'; 
 
 // ==============================================
 // SERVER KEY DÙNG CHUNG CHO BƯỚC 1
 // ==============================================
-const MASTER_SERVER_KEY = 'LVT-SERVER-PRO';
+const MASTER_SERVER_KEY = 'LVT-SERVER-PRO'; 
 
 function loadDB() {
     if (!fs.existsSync(DB_FILE)) return {};
@@ -30,7 +29,8 @@ function saveDB(data) {
 // MIDDLEWARE BẢO MẬT TRANG ADMIN
 // ==============================================
 app.use((req, res, next) => {
-    if (req.path === '/api/check' || req.path === '/api/ai') return next();
+    // Đã thêm /kich-hoat vào danh sách ngoại lệ để khách không bị chặn
+    if (req.path === '/api/check' || req.path === '/api/ai' || req.path === '/kich-hoat') return next();
     if (req.path === '/login') return next();
     const cookies = req.headers.cookie || '';
     if (cookies.includes('admin_auth=true')) {
@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 });
 
 // ==============================================
-// CHỨC NĂNG ĐĂNG NHẬP (GIAO DIỆN SIÊU ĐẸP)
+// CHỨC NĂNG ĐĂNG NHẬP ADMIN
 // ==============================================
 app.get('/login', (req, res) => {
     res.send(`
@@ -51,27 +51,14 @@ app.get('/login', (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat; height: 100vh; display: flex; align-items: center; justify-content: center; }
-     
             .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 1; }
-            .login-card { position: relative; z-index: 2; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); padding: 40px; border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); width: 320px; text-align: center;
-            }
-            .login-card h2 { color: #fff; margin-top: 0;
-            margin-bottom: 30px; letter-spacing: 2px; font-weight: 900; text-shadow: 0 0 10px rgba(0,255,255,0.5);
-            }
-            .login-card input { width: 100%; padding: 15px;
-            margin-bottom: 25px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0,255,255,0.3); outline: none; border-radius: 30px; color: #0ff; font-size: 16px;
-            box-sizing: border-box; text-align: center; transition: 0.3s; }
-            .login-card input:focus { border-color: #0ff;
-            box-shadow: 0 0 15px rgba(0,255,255,0.4); background: rgba(0,0,0,0.6); }
-            .login-card input::placeholder { color: #aaa;
-            }
-            .login-card button { width: 100%; padding: 15px;
-            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: #fff; font-weight: bold; border: none; border-radius: 30px; cursor: pointer; font-size: 16px; transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4); text-transform: uppercase;
-            }
-            .login-card button:hover { transform: scale(1.05); filter: brightness(1.2);
-            }
+            .login-card { position: relative; z-index: 2; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); width: 320px; text-align: center; }
+            .login-card h2 { color: #fff; margin-top: 0; margin-bottom: 30px; letter-spacing: 2px; font-weight: 900; text-shadow: 0 0 10px rgba(0,255,255,0.5); }
+            .login-card input { width: 100%; padding: 15px; margin-bottom: 25px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0,255,255,0.3); outline: none; border-radius: 30px; color: #0ff; font-size: 16px; box-sizing: border-box; text-align: center; transition: 0.3s; }
+            .login-card input:focus { border-color: #0ff; box-shadow: 0 0 15px rgba(0,255,255,0.4); background: rgba(0,0,0,0.6); }
+            .login-card input::placeholder { color: #aaa; }
+            .login-card button { width: 100%; padding: 15px; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: #fff; font-weight: bold; border: none; border-radius: 30px; cursor: pointer; font-size: 16px; transition: 0.3s; box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4); text-transform: uppercase; }
+            .login-card button:hover { transform: scale(1.05); filter: brightness(1.2); }
         </style>
     </head>
     <body>
@@ -80,7 +67,6 @@ app.get('/login', (req, res) => {
             <h2>LVT ADMIN PRO</h2>
             <form action="/login" method="POST">
                 <input type="password" name="password" placeholder="Nhập mật khẩu quản trị..." required autocomplete="off">
-             
                 <button type="submit">Xác nhận vào hệ thống</button>
             </form>
         </div>
@@ -97,10 +83,122 @@ app.post('/login', (req, res) => {
         res.send('<script>alert("Mật khẩu không chính xác!"); window.location="/login";</script>');
     }
 });
+
 app.get('/logout', (req, res) => {
     res.setHeader('Set-Cookie', 'admin_auth=; Max-Age=0; HttpOnly; Path=/');
     res.redirect('/login');
 });
+
+// ==============================================
+// GIAO DIỆN KHÁCH HÀNG (TRANG NHẬP KEY VIP)
+// ==============================================
+app.get('/kich-hoat', (req, res) => {
+    res.send(`
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Kích Hoạt VIP LVT</title>
+        <style>
+            body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat; height: 100vh; display: flex; align-items: center; justify-content: center; }
+            .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 1; }
+            .login-card { position: relative; z-index: 2; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); width: 320px; text-align: center; }
+            .login-card h2 { color: #fff; margin-top: 0; margin-bottom: 25px; letter-spacing: 2px; font-weight: 900; text-shadow: 0 0 10px rgba(0,255,255,0.5); }
+            .login-card select, .login-card input { width: 100%; padding: 15px; margin-bottom: 20px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0,255,255,0.3); outline: none; border-radius: 30px; color: #0ff; font-size: 16px; box-sizing: border-box; text-align: center; transition: 0.3s; }
+            .login-card select option { background: #121212; color: #0ff; }
+            .login-card input:focus, .login-card select:focus { border-color: #0ff; box-shadow: 0 0 15px rgba(0,255,255,0.4); background: rgba(0,0,0,0.6); }
+            .login-card input::placeholder { color: #aaa; }
+            .login-card button { width: 100%; padding: 15px; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: #fff; font-weight: bold; border: none; border-radius: 30px; cursor: pointer; font-size: 16px; transition: 0.3s; box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4); text-transform: uppercase; }
+            .login-card button:hover { transform: scale(1.05); filter: brightness(1.2); }
+            .login-card button:disabled { background: #555; cursor: not-allowed; box-shadow: none; transform: none; }
+            #statusMessage { margin-top: 20px; font-size: 15px; font-weight: bold; line-height: 1.5; }
+        </style>
+    </head>
+    <body>
+        <div class="overlay"></div>
+        <div class="login-card">
+            <h2>LVT VIP LOADER</h2>
+            
+            <select id="gameSelect">
+                <option value="" disabled selected>-- Chọn Game/Tool --</option>
+                <option value="freefire">MG Bypass (Free Fire)</option>
+                <option value="olm">Tool Hack Olm.vn</option>
+            </select>
+
+            <input type="text" id="keyInput" placeholder="Nhập Key của bạn..." autocomplete="off">
+            <button id="btnSubmit" onclick="checkKey()">KÍCH HOẠT</button>
+            <div id="statusMessage"></div>
+        </div>
+
+        <script>
+            let deviceId = localStorage.getItem('lvt_device_id');
+            if (!deviceId) {
+                deviceId = 'WEB-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem('lvt_device_id', deviceId);
+            }
+
+            async function checkKey() {
+                const game = document.getElementById('gameSelect').value;
+                const key = document.getElementById('keyInput').value.trim();
+                const btn = document.getElementById('btnSubmit');
+                const statusBox = document.getElementById('statusMessage');
+
+                if (!game || !key) {
+                    statusBox.style.color = '#ffcc00';
+                    statusBox.innerHTML = '⚠️ Vui lòng chọn Game và nhập Key!';
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerText = 'ĐANG KIỂM TRA...';
+                statusBox.innerHTML = '';
+
+                try {
+                    const response = await fetch('/api/check', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key: key, deviceId: deviceId })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        let expText = data.exp === 'permanent' ? 'Vĩnh viễn' : new Date(data.exp).toLocaleString();
+                        statusBox.style.color = '#00ffcc';
+                        statusBox.innerHTML = '✅ ' + data.message + 
+                                              '<br><span style="color:#fff; font-size:13px;">Hạn: ' + expText + '</span>' +
+                                              '<br><span style="color:#fff; font-size:13px;">Thiết bị: ' + data.devices + '</span>' +
+                                              '<br><span style="color:#ffcc00; font-size:13px;">Đang mở tool...</span>';
+
+                        setTimeout(() => {
+                            if (game === 'freefire') {
+                                window.location.href = 'https://link-tai-apk-mg-bypass.com';
+                            } else if (game === 'olm') {
+                                window.location.href = 'https://link-script-olm.com';
+                            }
+                        }, 2000);
+
+                    } else {
+                        statusBox.style.color = '#ff4444';
+                        statusBox.innerHTML = '❌ Lỗi: ' + data.message;
+                        btn.disabled = false;
+                        btn.innerText = 'KÍCH HOẠT';
+                    }
+                } catch (error) {
+                    statusBox.style.color = '#ff4444';
+                    statusBox.innerHTML = '❌ Lỗi kết nối Server!';
+                    btn.disabled = false;
+                    btn.innerText = 'KÍCH HOẠT';
+                }
+            }
+        </script>
+    </body>
+    </html>
+    `);
+});
+
+
 // ==============================================
 // 1. API CHECK KEY (TÍNH THỜI GIAN KHI LOGIN)
 // ==============================================
@@ -133,6 +231,7 @@ app.post('/api/check', (req, res) => {
 
     res.json({ status: 'success', message: 'Xác thực thành công!', key: key, exp: keyData.exp, devices: `${keyData.devices.length}/${keyData.maxDevices}` });
 });
+
 // ==============================================
 // 2. API TRỢ LÝ AI
 // ==============================================
@@ -155,6 +254,7 @@ app.post('/api/ai', async (req, res) => {
         res.status(500).json({ status: 'error', message: "Lỗi kết nối máy chủ AI" });
     }
 });
+
 // ==============================================
 // 3. API QUẢN TRỊ (THÊM RESET & XÓA HÀNG LOẠT)
 // ==============================================
@@ -167,7 +267,6 @@ app.post('/admin/create', (req, res) => {
     for (let i = 0; i < qty; i++) {
         const newKey = `${prefix}${Math.random().toString(36).substring(2, 8).toUpperCase()}`; 
         let expTime = 'permanent';
-   
         let durationMs = 0;
 
         if (type !== 'permanent') { 
@@ -175,13 +274,13 @@ app.post('/admin/create', (req, res) => {
             durationMs = parseInt(duration) * multipliers[type]; 
             expTime = 'pending'; // Trạng thái chờ, chưa đếm giờ
         }
-    
-        db[newKey] = { exp: expTime, durationMs: durationMs, maxDevices: parseInt(maxDevices), devices: [], status: 'active' };
+        db[newKey] = { exp: expTime, durationMs: durationMs, maxDevices: parseInt(maxDevices), devices: [], status: 'active' }; 
     }
     
     saveDB(db); 
     res.redirect('/');
 });
+
 app.post('/admin/add-time/:key', (req, res) => {
     let key = req.params.key; let { duration, type } = req.body; let db = loadDB();
     if (db[key] && db[key].exp !== 'permanent') { 
@@ -193,18 +292,21 @@ app.post('/admin/add-time/:key', (req, res) => {
     } 
     res.redirect('/');
 });
+
 // TÍNH NĂNG MỚI: Reset Thiết bị đã lưu của Key
 app.get('/admin/reset-device/:key', (req, res) => { 
     let db = loadDB(); 
     if (db[req.params.key]) { db[req.params.key].devices = []; saveDB(db); } 
     res.redirect('/'); 
 });
+
 // TÍNH NĂNG MỚI: Đưa Key trở lại trạng thái chờ kích hoạt (Khởi động lại thời gian)
 app.get('/admin/reset-time/:key', (req, res) => { 
     let db = loadDB(); 
     if (db[req.params.key] && db[req.params.key].exp !== 'permanent') { db[req.params.key].exp = 'pending'; saveDB(db); } 
     res.redirect('/'); 
 });
+
 // TÍNH NĂNG MỚI: Xóa hàng loạt tùy chọn
 app.post('/admin/delete-bulk', (req, res) => {
     let { deleteType } = req.body; 
@@ -214,7 +316,6 @@ app.post('/admin/delete-bulk', (req, res) => {
         if (deleteType === 'all') {
             delete db[k];
         } else if (deleteType === 'expired' && db[k].exp !== 'permanent' && db[k].exp !== 'pending' && now > db[k].exp) {
-    
             delete db[k];
         } else if (deleteType === 'banned' && db[k].status === 'banned') {
             delete db[k];
@@ -223,11 +324,13 @@ app.post('/admin/delete-bulk', (req, res) => {
     saveDB(db);
     res.redirect('/');
 });
+
 app.get('/admin/add-device/:key', (req, res) => { let db = loadDB(); if (db[req.params.key]) { db[req.params.key].maxDevices += 1; saveDB(db); } res.redirect('/'); });
 app.get('/admin/sub-device/:key', (req, res) => { let db = loadDB(); if (db[req.params.key] && db[req.params.key].maxDevices > 1) { db[req.params.key].maxDevices -= 1; saveDB(db); } res.redirect('/'); });
 app.get('/admin/ban/:key', (req, res) => { let db = loadDB(); if (db[req.params.key]) { db[req.params.key].status = 'banned'; saveDB(db); } res.redirect('/'); });
 app.get('/admin/unban/:key', (req, res) => { let db = loadDB(); if (db[req.params.key]) { db[req.params.key].status = 'active'; saveDB(db); } res.redirect('/'); });
 app.get('/admin/delete/:key', (req, res) => { let db = loadDB(); if (db[req.params.key]) { delete db[req.params.key]; saveDB(db); } res.redirect('/'); });
+
 // ==============================================
 // 4. GIAO DIỆN ADMIN VÀ BUILDER
 // ==============================================
@@ -238,7 +341,6 @@ app.get('/', (req, res) => {
         let isBanned = keyData.status === 'banned'; let statusText = isBanned ? '<span style="color:red;font-weight:bold;">BANNED</span>' : '<span style="color:green;font-weight:bold;">ACTIVE</span>';
         
         let expText = 'Vĩnh viễn'; 
-       
         if (keyData.exp === 'pending') { expText = `<span style="color:#007bff;font-weight:bold;">Chờ kích hoạt</span>`; } 
         else if (keyData.exp !== 'permanent') { expText = new Date(keyData.exp).toLocaleString(); if (Date.now() > keyData.exp) expText = `<span style="color:gray;">Hết hạn (${expText})</span>`; }
 
@@ -247,7 +349,6 @@ app.get('/', (req, res) => {
             ? `<strong style="font-size: 16px; color: #f39c12; text-shadow: 0 0 2px rgba(243,156,18,0.5);">★ ${k}</strong>` 
             : `<strong style="font-size: 16px;">${k}</strong>`;
 
-        // Đã thêm nút Reset (HWID)
         let deviceHtml = `
             <div style="display:flex; align-items:center; gap:8px;">
                 <a href="/admin/sub-device/${k}" style="text-decoration:none;"><button style="padding:2px 8px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">-</button></a>
@@ -257,7 +358,6 @@ app.get('/', (req, res) => {
             </div>
         `;
 
-        // Đã thêm nút Reset TG
         let actionButtons = `
             <div style="display:flex; gap:5px; flex-wrap:wrap; align-items:center;">
                 ${keyData.exp !== 'permanent' ? `<form action="/admin/add-time/${k}" method="POST" style="margin:0; display:flex; gap:2px;"><input type="number" name="duration" placeholder="Số" style="width:50px; padding:5px; margin:0;" required><select name="type" style="padding:5px; margin:0;"><option value="min">Phút</option><option value="hour">Giờ</option><option value="day">Ngày</option></select><button type="submit" class="btn-add">+ T.Gian</button></form>` : '<span>(Key V.Viễn)</span>'}
@@ -301,22 +401,18 @@ app.get('/', (req, res) => {
                 <form action="/admin/create" method="POST">
                     <div class="flex-row">
                         <select name="keyPrefix" style="border: 2px solid #00ffcc; font-weight:bold; color: #333;">
-                           
                             <option value="LVT">Tạo Key Thường (LVT-)</option>
                             <option value="VIP">Tạo Key VIP (VIP-)</option>
                         </select>
                     </div>
-                   
                     <div class="flex-row">
                         <input type="number" name="duration" placeholder="Số thời gian (VD: 1, 30...)" required>
                         <select name="type">
                             <option value="sec">Giây</option><option value="min">Phút</option><option value="hour">Giờ</option>
-         
                             <option value="day">Ngày</option><option value="month">Tháng</option><option value="year">Năm</option>
                             <option value="permanent">Vĩnh viễn</option>
                         </select>
                     </div>
-    
                     <div class="flex-row">
                         <input type="number" name="maxDevices" placeholder="Số thiết bị tối đa" value="1" required>
                         <input type="number" name="quantity" placeholder="Số lượng tạo (VD: 2)" value="1" required style="border-color: #ff9800; font-weight:bold;">
@@ -325,7 +421,6 @@ app.get('/', (req, res) => {
                 </form>
             </div>
             <div class="card">
-               
                 <h2 style="margin-top:0; color: #28a745;">2. Bọc Script (Hỗ Trợ Document Start)</h2>
                 <input type="text" id="b-url" placeholder="Trang web áp dụng (VD: *://*.olm.vn/*)" value="*://*.olm.vn/*">
                 <input type="text" id="b-server" placeholder="Link Server" value="http://localhost:3000">
@@ -343,150 +438,46 @@ app.get('/', (req, res) => {
                         <option value="expired">Xóa Key Hết Hạn</option>
                         <option value="banned">Xóa Key Bị Khóa</option>
                         <option value="all">Xóa TẤT CẢ Key</option>
-              
                     </select>
                     <button type="submit" style="background:#dc3545; padding:5px 15px;">Xóa Hàng Loạt</button>
                 </form>
             </div>
             <br>
-            <table><tr><th>Key / Trạng thái</th><th>Hết hạn</th><th>Thiết bị</th><th>Hành động</th></tr>${keysHtml}</table>
+            <div style="overflow-x:auto;">
+                <table>
+                    <tr>
+                        <th>Key VIP / Thường</th>
+                        <th>Hạn Sử Dụng</th>
+                        <th>Thiết bị (HWID)</th>
+                        <th>Hành Động</th>
+                    </tr>
+                    ${keysHtml}
+                </table>
+            </div>
         </div>
 
         <script>
-            function copyKey(k) {
-         
-                navigator.clipboard.writeText(k);
-                let msg = document.getElementById('copy-msg-' + k);
-                msg.innerText = '(Đã copy!)'; msg.style.color = 'green';
-                setTimeout(() => { msg.innerText = '(Nhấn để copy)'; msg.style.color = '#6c757d'; }, 2000);
-            }
-          
-            function buildScript() {
-                let url = document.getElementById('b-url').value;
-                let server = document.getElementById('b-server').value;
-                let code = document.getElementById('b-code').value;
-                if(!code) return alert('Vui lòng dán code!');
-                
-  
-                let base64Code = btoa(unescape(encodeURIComponent(code)));
-                let template = document.getElementById('script-template').innerHTML;
-                
-                let finalCode = template
-                    .replace(/\\{\\{URL\\}\\}/g, url)
-                    .replace(/\\{\\{SERVER\\}\\}/g, server)
-                    .replace(/\\{\\{BASE64_USER_CODE\\}\\}/g, base64Code);
-                document.getElementById('b-final').value = finalCode;
-            }
-            function copyFinalCode() {
-                let final = document.getElementById('b-final');
-                if(!final.value) return;
-                final.select(); document.execCommand('copy'); alert('Đã copy script bảo mật!');
+            function copyKey(key) {
+                navigator.clipboard.writeText(key).then(() => {
+                    let msg = document.getElementById('copy-msg-' + key);
+                    if(msg) {
+                        msg.innerText = "(Đã copy!)";
+                        msg.style.color = "#28a745";
+                        setTimeout(() => { 
+                            msg.innerText = "(Nhấn để copy)"; 
+                            msg.style.color = "#6c757d"; 
+                        }, 2000);
+                    }
+                });
             }
         </script>
-
-        <script type="text/template" id="script-template">
-// ==UserScript==
-// @name         LVT Protected Script Dual-Key
-// @namespace    http://tampermonkey.net/
-// @version      7.0
-// @description  Hệ thống Loader yêu cầu 2 lớp Key
-// @match        {{URL}}
-// @require      https://cdn.jsdelivr.net/npm/sweetalert2@11
-// @grant        GM_xmlhttpRequest
-// @grant        GM_setValue
-// @grant  
-       GM_getValue
-// @grant        GM_addStyle
-// @grant        unsafeWindow
-// @run-at       document-start
-// @connect      localhost
-// @connect      *
-// ==/UserScript==
-
-(function() {
-    'use strict';
-    const _0xRoot = document.documentElement;
-    const style = document.createElement('style');
-    style.innerHTML = '.swal2-container { z-index: 2147483647 !important; } body { margin: 0; } * { box-sizing: border-box; }';
-    _0xRoot.appendChild(style);
-
-    const _0xUrl = '{{SERVER}}/api/check'; 
-
-    let _0xDev = GM_getValue('lvt_device_id');
-    if (!_0xDev) { _0xDev = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase(); GM_setValue('lvt_device_id', _0xDev);
-}
-
-    const _0xUI_Lock = \`
-    <div id="lvt-lock" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,5,20,0.95);z-index:2147483646;display:flex;justify-content:center;align-items:center;">
-        <div style="background:#111;padding:40px;border-radius:24px;text-align:center;width:380px;border:1px solid #0ff;">
-            <h2 style="color:#0ff;">GALAXY SECURITY</h2>
-            <p style="color:#aaa;">Tọa độ: \${_0xDev}</p>
-            <input id="lvt-key-1" type="text" placeholder="Mật mã Không gian 1..." style="width:100%;padding:10px;margin-bottom:10px;">
-            <input id="lvt-key-2" type="text" placeholder="Mật mã Không gian 2..." style="width:100%;padding:10px;margin-bottom:20px;">
-       
-             <button id="lvt-btn-submit" style="width:100%;padding:10px;background:#007bff;color:#fff;font-weight:bold;cursor:pointer;">KÍCH HOẠT</button>
-        </div>
-    </div>\`;
-function _0xRunMyHack() {
-        console.log("LVT SYSTEM: Kích hoạt tool...");
-try { const _0xRaw = decodeURIComponent(escape(window.atob('{{BASE64_USER_CODE}}'))); eval(_0xRaw); } 
-        catch(e) { console.error("Lỗi code:", e);
-}
-    }
-
-    const checkKeyAPI = (key) => new Promise((resolve, reject) => {
-        GM_xmlhttpRequest({
-            method: "POST", url: _0xUrl, headers: { "Content-Type": "application/json" },
-            data: JSON.stringify({ key: key, deviceId: _0xDev }),
-            onload: function(res) {
-                try {
-      
-                    const data = JSON.parse(res.responseText);
-                    if (data.status === 'success') resolve(data);
-                    else reject(data.message);
-                } catch(e) { reject('Lỗi máy chủ JSON!'); }
-            },
-   
-         onerror: () => reject('Không thể kết nối Server API!')
-        });
-    });
-document.addEventListener('DOMContentLoaded', () => {
-        document.body.insertAdjacentHTML('beforeend', _0xUI_Lock);
-        document.getElementById('lvt-btn-submit').addEventListener('click', async () => {
-            const k1 = document.getElementById('lvt-key-1').value.trim();
-            const k2 = document.getElementById('lvt-key-2').value.trim();
-            if (!k1 || !k2) {
-                if(typeof Swal !== 'undefined') Swal.fire('Lỗi', 'Nhập đủ 2 Key!', 'error');
-     
-                else alert('Vui lòng nhập đủ 2 Key!');
-                return;
-            }
-            
-            const btn = document.getElementById('lvt-btn-submit');
-            btn.innerText = 'ĐANG KIỂM TRA...';
-            
-try {
-                await checkKeyAPI(k1);
-                await checkKeyAPI(k2);
-                document.getElementById('lvt-lock').remove();
-                _0xRunMyHack();
-            } catch (err) {
-                if(typeof Swal 
-!== 'undefined') Swal.fire('Lỗi', err, 'error');
-                else alert('Lỗi: ' + err);
-                btn.innerText = 'KÍCH HOẠT';
-}
-        });
-    });
-})();
-</script>
     </body>
     </html>
     `;
     res.send(html);
 });
-// KHỞI ĐỘNG SERVER
-app.listen(port, () => {
-    console.log(`\n🚀 LVT Server đang chạy tại Port: ${port}`);
-    console.log(`🌐 Truy cập /login để vào trang Quản Trị`);
+
+// Bắt đầu chạy Server
+app.listen(process.env.PORT || port, () => {
+    console.log(`Server đang chạy tại http://localhost:${process.env.PORT || port}`);
 });
